@@ -1,3 +1,11 @@
+## Project structure (after cleanup)
+
+- Backend: `backend/app/`
+- Frontend mobile (Expo): `frontend/mobile/`
+- Setup guide: `documentation/SETUP.md`
+
+---
+
 #  AgrilabVision – Soil Analysis & Fertility App Developed by **Bakary Coulibaly** AgrilabVision is an intelligent mobile application that helps farmers analyze soil, determine crop suitability, receive fertilizer recommendations, and optimize irrigation using **AI-powered image analysis**
 
 This project aims to bring **affordable agricultural decision-making tools** to rural communities with limited access to laboratories and experts. 

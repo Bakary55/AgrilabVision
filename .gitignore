@@ -1,0 +1,41 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# --- Databases / local runtime files ---
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# --- Node / frontend ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Build / tooling ---
+dist/
+build/
+.cache/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/launch.json
