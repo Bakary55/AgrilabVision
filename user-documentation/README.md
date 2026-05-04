@@ -1,6 +1,6 @@
 # User documentation
 
-- **`USER_GUIDE.md`** — add the full user help file here for submission (screenshots, troubleshooting, FAQ). Create it at `user-documentation/USER_GUIDE.md` when you finalize the assignment.
-- **`screenshots/`** — put key UI screenshots here and link them from `USER_GUIDE.md`.
+- **[`USER_GUIDE.md`](USER_GUIDE.md)** — main user help: getting started, screens, troubleshooting, FAQ.
+- **[`screenshots/`](screenshots/)** — add PNG captures listed in the guide (`01-auth.png`, `02-home.png`, …) so they appear in `USER_GUIDE.md` on GitHub.
 
-Until `USER_GUIDE.md` exists, mobile usage is summarized in the root **[`README.md`](../README.md)** and setup details in **[`deployment/INSTALL.md`](../deployment/INSTALL.md)**.
+Installation and developer setup: **[`../deployment/INSTALL.md`](../deployment/INSTALL.md)**.

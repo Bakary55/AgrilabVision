@@ -10,7 +10,7 @@ Intelligent mobile app for **soil analysis**, **crop and fertilizer recommendati
 | [`frontend/mobile/`](frontend/mobile/) | Expo app: auth, home, soil analysis, map & weather, account. |
 | [`documentation/`](documentation/) | Project docs: setup notes, SRS / Gantt (add PDFs and sources here when ready). |
 | [`deployment/`](deployment/) | **Installation, dependencies, and deployment** — start with [`deployment/INSTALL.md`](deployment/INSTALL.md). |
-| [`user-documentation/`](user-documentation/) | End-user help — see [`user-documentation/README.md`](user-documentation/README.md) (full `USER_GUIDE.md` to be completed for submission). |
+| [`user-documentation/`](user-documentation/) | End-user help — [`user-documentation/USER_GUIDE.md`](user-documentation/USER_GUIDE.md) (+ screenshots folder). |
 | [`render.yaml`](render.yaml) | Example Render.com configuration for hosting the API. |
 
 ## Quick start (local)
