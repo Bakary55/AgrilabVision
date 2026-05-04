@@ -40,7 +40,7 @@ Replace or extend the table below for your course submission (instructor will ve
 
 | Name | GitHub username |
 |------|-----------------|
-| Bakary Coulibaly | *@your-github-username* |
+| Bakary Coulibaly | @Bakary55 |
 | *(other members)* | *@…* |
 
 ## License / course use
