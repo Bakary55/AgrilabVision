@@ -37,3 +37,10 @@ export type FarmingInsight = {
   advisory_text: string;
   weather_summary: string;
 };
+
+export type SoilImportReport = {
+  inserted_count: number;
+  failed_count: number;
+  inserted_ids: number[];
+  errors: string[];
+};

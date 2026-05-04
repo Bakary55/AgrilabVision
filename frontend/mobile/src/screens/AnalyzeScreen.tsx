@@ -1,4 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
@@ -14,7 +15,7 @@ import {
 } from "react-native";
 import { API_BASE_URL } from "../constants/config";
 import { RootStackParamList } from "../navigation/types";
-import type { SoilAnalysisResult } from "../types/api";
+import type { SoilAnalysisResult, SoilImportReport } from "../types/api";
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Analyze">;
@@ -30,11 +31,51 @@ export function AnalyzeScreen({ navigation }: Props) {
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
   const [manualRecommendation, setManualRecommendation] = useState<any | null>(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [csvReport, setCsvReport] = useState<SoilImportReport | null>(null);
   const [ph, setPh] = useState("");
   const [moisture, setMoisture] = useState("");
   const [organicMatter, setOrganicMatter] = useState("");
   const [clay, setClay] = useState("");
   const [phosphate, setPhosphate] = useState("");
+  const isFrench = language === "fr";
+  const t = {
+    analysisLanguage: isFrench ? "Langue d'analyse" : "Analysis language",
+    choosePhoto: isFrench ? "Choisir une photo" : "Choose photo",
+    takePhoto: isFrench ? "Prendre une photo" : "Take photo",
+    importCsvShort: isFrench ? "Importer CSV" : "Import CSV",
+    analyzeSoil: isFrench ? "Analyser le sol" : "Analyze soil",
+    result: isFrench ? "Resultat" : "Result",
+    soilType: isFrench ? "Type de sol" : "Soil type",
+    moisture: isFrench ? "Humidite" : "Moisture",
+    photoQuality: isFrench ? "Qualite photo" : "Photo quality",
+    recommendedCrops: isFrench ? "Cultures recommandees" : "Recommended crops",
+    fertilizer: isFrench ? "Fertilisation" : "Fertilizer",
+    notes: isFrench ? "Notes" : "Notes",
+    weatherMapLink: isFrench
+      ? "Meteo, carte et aide a la decision pour ce sol ->"
+      : "Weather, map & decision support for this soil ->",
+    manualInput: isFrench
+      ? "Saisie manuelle du sol (optionnelle)"
+      : "Manual soil input (optional)",
+    manualHint: isFrench
+      ? "Ajoutez des mesures manuelles si vous souhaitez completer l'analyse."
+      : "Add manual measurements if you want to complement the analysis.",
+    analyzeManual: isFrench ? "Analyser les donnees manuelles" : "Analyze manual data",
+    fertilityScore: isFrench ? "Score de fertilite" : "Fertility score",
+    soilClass: isFrench ? "Classe de sol" : "Soil class",
+    irrigation: isFrench ? "Irrigation" : "Irrigation",
+    notEnoughConfidence: isFrench
+      ? "Confiance insuffisante avec la photo seule. Ajoutez des mesures manuelles."
+      : "Not enough confidence from photo only. Add manual measurements for crop recommendations.",
+    csvInvalid: isFrench
+      ? "Veuillez selectionner un fichier .csv."
+      : "Please select a .csv file.",
+    csvDone: isFrench ? "Import termine" : "Import complete",
+    csvRowsAdded: isFrench ? "Lignes ajoutees" : "Rows inserted",
+    csvRowsFailed: isFrench ? "Lignes en erreur" : "Rows failed",
+  };
 
   function applyPickedAsset(asset: ImagePicker.ImagePickerAsset) {
     setUri(asset.uri);
@@ -83,16 +124,16 @@ export function AnalyzeScreen({ navigation }: Props) {
 
   function buildSoilSummary(r: SoilAnalysisResult): string {
     return [
-      `Soil type: ${r.soil_type}`,
-      `Moisture estimate: ${r.moisture_estimate}`,
-      `Crops: ${r.recommended_crops.join(", ")}`,
-      `Fertilizer: ${r.fertilizer_recommendations.join(" | ")}`,
+      `${t.soilType}: ${r.soil_type}`,
+      `${t.moisture}: ${r.moisture_estimate}`,
+      `${t.recommendedCrops}: ${r.recommended_crops.join(", ")}`,
+      `${t.fertilizer}: ${r.fertilizer_recommendations.join(" | ")}`,
     ].join(". ");
   }
 
   async function analyze() {
     if (!uri) {
-      Alert.alert("Photo", "Choose an image first.");
+      Alert.alert(isFrench ? "Photo" : "Photo", isFrench ? "Choisissez d'abord une image." : "Choose an image first.");
       return;
     }
     setLoading(true);
@@ -115,12 +156,14 @@ export function AnalyzeScreen({ navigation }: Props) {
         throw new Error(
           typeof data.detail === "string"
             ? data.detail
+            : isFrench
+            ? "Echec de l'analyse. Veuillez reessayer."
             : "Analysis failed. Please try again."
         );
       }
       setResult(data as SoilAnalysisResult);
     } catch (e) {
-      let msg = e instanceof Error ? e.message : "Network error";
+      let msg = e instanceof Error ? e.message : isFrench ? "Erreur reseau" : "Network error";
       if (
         msg === "Network request failed" ||
         msg.toLowerCase().includes("network")
@@ -131,6 +174,8 @@ export function AnalyzeScreen({ navigation }: Props) {
         msg =
           isLoopback
             ? "Cannot reach the server. On a real phone, set EXPO_PUBLIC_API_BASE_URL in mobile/.env to your PC's Wi‑Fi IP (e.g. http://192.168.1.10:8000), restart Expo, and ensure uvicorn runs with --host 0.0.0.0."
+            : isFrench
+            ? `Impossible d'atteindre ${API_BASE_URL}. Verifiez le reseau et que le backend est en ligne.`
             : `Cannot reach ${API_BASE_URL}. Same Wi‑Fi as the PC, firewall allows port 8000, backend running.`;
       }
       setError(msg);
@@ -150,7 +195,11 @@ export function AnalyzeScreen({ navigation }: Props) {
       phosphate: Number(phosphate),
     };
     if (Object.values(parsed).some((v) => Number.isNaN(v))) {
-      setManualError("Please fill all manual fields with valid numbers.");
+      setManualError(
+        isFrench
+          ? "Veuillez remplir tous les champs manuels avec des valeurs valides."
+          : "Please fill all manual fields with valid numbers."
+      );
       return;
     }
 
@@ -163,7 +212,11 @@ export function AnalyzeScreen({ navigation }: Props) {
       });
       const created = await createRes.json().catch(() => ({}));
       if (!createRes.ok || !created.id) {
-        throw new Error("Could not save manual soil data.");
+        throw new Error(
+          isFrench
+            ? "Impossible d'enregistrer les donnees manuelles."
+            : "Could not save manual soil data."
+        );
       }
 
       const recRes = await fetch(
@@ -171,19 +224,85 @@ export function AnalyzeScreen({ navigation }: Props) {
       );
       const recData = await recRes.json().catch(() => ({}));
       if (!recRes.ok) {
-        throw new Error("Could not generate recommendation from manual data.");
+        throw new Error(
+          isFrench
+            ? "Impossible de generer la recommandation a partir des donnees manuelles."
+            : "Could not generate recommendation from manual data."
+        );
       }
       setManualRecommendation(recData);
     } catch (e) {
-      setManualError(e instanceof Error ? e.message : "Manual analysis failed.");
+      setManualError(
+        e instanceof Error
+          ? e.message
+          : isFrench
+          ? "Echec de l'analyse manuelle."
+          : "Manual analysis failed."
+      );
     } finally {
       setManualLoading(false);
     }
   }
 
+  async function importCsv() {
+    setCsvError(null);
+    setCsvReport(null);
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: ["text/csv", "text/comma-separated-values", "application/vnd.ms-excel"],
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+      if (picked.canceled || !picked.assets?.[0]) {
+        return;
+      }
+
+      const file = picked.assets[0];
+      const fileName = file.name || "soil-samples.csv";
+      if (!fileName.toLowerCase().endsWith(".csv")) {
+        setCsvError(t.csvInvalid);
+        return;
+      }
+
+      setCsvLoading(true);
+      const form = new FormData();
+      form.append("file", {
+        uri: file.uri,
+        name: fileName,
+        type: "text/csv",
+      } as unknown as Blob);
+
+      const res = await fetch(`${API_BASE_URL}/soil-samples/import-csv`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          typeof data.detail === "string"
+            ? data.detail
+            : isFrench
+            ? "Echec de l'import CSV."
+            : "CSV import failed."
+        );
+      }
+      setCsvReport(data as SoilImportReport);
+    } catch (e) {
+      setCsvError(
+        e instanceof Error
+          ? e.message
+          : isFrench
+          ? "Echec de l'import CSV."
+          : "CSV import failed."
+      );
+    } finally {
+      setCsvLoading(false);
+    }
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.label}>Analysis language</Text>
+      <Text style={styles.label}>{t.analysisLanguage}</Text>
       <View style={styles.row}>
         <TouchableOpacity
           style={[styles.chip, language === "en" && styles.chipOn]}
@@ -205,18 +324,48 @@ export function AnalyzeScreen({ navigation }: Props) {
 
       <View style={styles.pickRow}>
         <TouchableOpacity
-          style={[styles.pickBtn, styles.pickBtnHalf]}
+          style={[styles.pickBtn, styles.pickBtnThird]}
           onPress={pickImage}
         >
-          <Text style={styles.pickBtnText}>Choose photo</Text>
+          <Text style={styles.pickBtnText}>{t.choosePhoto}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.pickBtn, styles.pickBtnHalf]}
+          style={[styles.pickBtn, styles.pickBtnThird]}
           onPress={takePhoto}
         >
-          <Text style={styles.pickBtnText}>Take photo</Text>
+          <Text style={styles.pickBtnText}>{t.takePhoto}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.pickBtn, styles.pickBtnThird, csvLoading && styles.disabled]}
+          onPress={importCsv}
+          disabled={csvLoading}
+        >
+          {csvLoading ? (
+            <ActivityIndicator color="#1c6b2d" />
+          ) : (
+            <Text style={styles.pickBtnText}>{t.importCsvShort}</Text>
+          )}
         </TouchableOpacity>
       </View>
+      {csvError ? <Text style={styles.error}>{csvError}</Text> : null}
+      {csvReport ? (
+        <View style={[styles.card, { marginTop: 8 }]}>
+          <Text style={styles.bold}>{t.csvDone}</Text>
+          <Text style={styles.line}>
+            <Text style={styles.bold}>{t.csvRowsAdded}: </Text>
+            {csvReport.inserted_count}
+          </Text>
+          <Text style={styles.line}>
+            <Text style={styles.bold}>{t.csvRowsFailed}: </Text>
+            {csvReport.failed_count}
+          </Text>
+          {(csvReport.errors || []).slice(0, 2).map((err) => (
+            <Text key={err} style={styles.bullet}>
+              • {err}
+            </Text>
+          ))}
+        </View>
+      ) : null}
       {uri ? (
         <Image source={{ uri }} style={styles.preview} resizeMode="cover" />
       ) : null}
@@ -229,7 +378,7 @@ export function AnalyzeScreen({ navigation }: Props) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.analyzeBtnText}>Analyze soil</Text>
+          <Text style={styles.analyzeBtnText}>{t.analyzeSoil}</Text>
         )}
       </TouchableOpacity>
 
@@ -237,17 +386,17 @@ export function AnalyzeScreen({ navigation }: Props) {
 
       {result ? (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Result</Text>
+          <Text style={styles.cardTitle}>{t.result}</Text>
           <Text style={styles.line}>
-            <Text style={styles.bold}>Soil type: </Text>
+            <Text style={styles.bold}>{t.soilType}: </Text>
             {result.soil_type}
           </Text>
           <Text style={styles.line}>
-            <Text style={styles.bold}>Moisture: </Text>
+            <Text style={styles.bold}>{t.moisture}: </Text>
             {result.moisture_estimate}
           </Text>
           <Text style={styles.line}>
-            <Text style={styles.bold}>Photo quality: </Text>
+            <Text style={styles.bold}>{t.photoQuality}: </Text>
             {result.photo_quality_label} ({result.photo_quality_score}/100)
           </Text>
           {(result.photo_quality_notes || []).slice(0, 1).map((n) => (
@@ -255,7 +404,7 @@ export function AnalyzeScreen({ navigation }: Props) {
               • {n}
             </Text>
           ))}
-          <Text style={styles.bold}>Recommended crops</Text>
+          <Text style={styles.bold}>{t.recommendedCrops}</Text>
           {result.recommended_crops.length > 0 ? (
             result.recommended_crops.map((c) => (
               <Text key={c} style={styles.bullet}>
@@ -264,10 +413,10 @@ export function AnalyzeScreen({ navigation }: Props) {
             ))
           ) : (
             <Text style={styles.bullet}>
-              • Not enough confidence from photo only. Add manual measurements for crop recommendations.
+              • {t.notEnoughConfidence}
             </Text>
           )}
-          <Text style={[styles.bold, styles.mt]}>Fertilizer</Text>
+          <Text style={[styles.bold, styles.mt]}>{t.fertilizer}</Text>
           {result.fertilizer_recommendations.map((c) => (
             <Text key={c} style={styles.bullet}>
               • {c}
@@ -290,20 +439,21 @@ export function AnalyzeScreen({ navigation }: Props) {
             onPress={() =>
               navigation.navigate("MapWeather", {
                 soilSummary: buildSoilSummary(result),
+                language,
               })
             }
           >
             <Text style={styles.linkBtnText}>
-              Weather, map & AI advice for this soil →
+              {t.weatherMapLink}
             </Text>
           </TouchableOpacity>
         </View>
       ) : null}
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Manual soil input (recommended)</Text>
+        <Text style={styles.cardTitle}>{t.manualInput}</Text>
         <Text style={styles.label}>
-          Enter measurements to get stronger recommendations.
+          {t.manualHint}
         </Text>
 
         <TextInput
@@ -350,7 +500,7 @@ export function AnalyzeScreen({ navigation }: Props) {
           {manualLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.analyzeBtnText}>Analyze manual data</Text>
+            <Text style={styles.analyzeBtnText}>{t.analyzeManual}</Text>
           )}
         </TouchableOpacity>
 
@@ -359,29 +509,30 @@ export function AnalyzeScreen({ navigation }: Props) {
         {manualRecommendation ? (
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.bold}>
-              Fertility score: {manualRecommendation.fertility_score}
+              {t.fertilityScore}: {manualRecommendation.fertility_score}
             </Text>
             <Text style={styles.line}>
-              <Text style={styles.bold}>Soil class: </Text>
+              <Text style={styles.bold}>{t.soilClass}: </Text>
               {manualRecommendation.soil_type}
             </Text>
-            <Text style={styles.bold}>Recommended crops</Text>
+            <Text style={styles.bold}>{t.recommendedCrops}</Text>
             {(manualRecommendation.recommended_crops || []).map((c: string) => (
               <Text key={c} style={styles.bullet}>
                 • {c}
               </Text>
             ))}
-            <Text style={[styles.bold, styles.mt]}>Fertilizer</Text>
+            <Text style={[styles.bold, styles.mt]}>{t.fertilizer}</Text>
             <Text style={styles.bullet}>
               • {manualRecommendation.fertilizer_suggestion}
             </Text>
-            <Text style={[styles.bold, styles.mt]}>Irrigation</Text>
+            <Text style={[styles.bold, styles.mt]}>{t.irrigation}</Text>
             <Text style={styles.bullet}>
               • {manualRecommendation.irrigation_suggestion}
             </Text>
           </View>
         ) : null}
       </View>
+
     </ScrollView>
   );
 }
@@ -415,7 +566,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 12,
   },
-  pickBtnHalf: { flex: 1, marginBottom: 0 },
+  pickBtnThird: { flex: 1, marginBottom: 0 },
   pickBtnText: { color: "#1c6b2d", fontWeight: "600", textAlign: "center" },
   input: {
     backgroundColor: "#fff",

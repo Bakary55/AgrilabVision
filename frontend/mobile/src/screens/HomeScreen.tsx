@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { RootStackParamList } from "../navigation/types";
 
@@ -8,11 +8,25 @@ type Props = {
 };
 
 export function HomeScreen({ navigation }: Props) {
-  const { user, logout } = useAuth();
+  const { user, logout, profilePhotoUri } = useAuth();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>AgrilabVision</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>AgrilabVision</Text>
+        <TouchableOpacity
+          style={styles.accountBtn}
+          onPress={() => navigation.navigate("Account")}
+        >
+          {profilePhotoUri ? (
+            <Image source={{ uri: profilePhotoUri }} style={styles.accountPhoto} />
+          ) : (
+            <Text style={styles.accountIcon}>
+              {user?.first_name?.[0]?.toUpperCase() ?? "U"}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
       {user ? (
         <Text style={styles.welcome}>
           Hello, {user.first_name} ({user.user_type})
@@ -31,7 +45,7 @@ export function HomeScreen({ navigation }: Props) {
         style={styles.secondary}
         onPress={() => navigation.navigate("MapWeather", {})}
       >
-        <Text style={styles.secondaryText}>Map, weather & AI advice</Text>
+        <Text style={styles.secondaryText}>Map, weather & decision support</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.logout} onPress={() => void logout()}>
         <Text style={styles.logoutText}>Log out</Text>
@@ -52,6 +66,29 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1c6b2d",
     marginBottom: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  accountBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#dcebdc",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  accountIcon: {
+    color: "#1c6b2d",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  accountPhoto: {
+    width: "100%",
+    height: "100%",
   },
   welcome: {
     fontSize: 15,

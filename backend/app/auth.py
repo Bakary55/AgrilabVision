@@ -1,3 +1,4 @@
+import os
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -23,8 +24,9 @@ from app.schemas import (
 # Security settings
 # ------------------------------
 
-# NOTE: For a real app, store this in an environment variable.
-SECRET_KEY = "change-this-secret-key"
+SECRET_KEY = (os.getenv("SECRET_KEY") or "").strip()
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY is not set. Configure it in environment variables.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -1,5 +1,6 @@
 import csv
 import io
+import os
 from typing import List
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -31,10 +32,20 @@ from app.schemas import (
 
 app = FastAPI()
 
-# Allow frontend (or file://) to call the API during development.
+# Configure CORS from env var to avoid wildcard in production.
+raw_origins = os.getenv("CORS_ORIGINS", "")
+cors_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+if not cors_origins:
+    cors_origins = [
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

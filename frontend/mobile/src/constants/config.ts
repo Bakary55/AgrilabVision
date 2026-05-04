@@ -13,4 +13,10 @@ const extraUrl = Constants.expoConfig?.extra?.apiBaseUrl as string | undefined;
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||
   extraUrl?.trim() ||
-  "http://127.0.0.1:8000";
+  (__DEV__ ? "http://127.0.0.1:8000" : "");
+
+if (!API_BASE_URL) {
+  throw new Error(
+    "Missing EXPO_PUBLIC_API_BASE_URL. Configure your production backend URL in mobile/.env."
+  );
+}

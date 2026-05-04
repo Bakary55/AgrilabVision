@@ -23,6 +23,38 @@ type Props = {
 
 export function MapWeatherScreen({ route }: Props) {
   const soilSummary = route.params?.soilSummary;
+  const language = route.params?.language ?? "en";
+  const isFrench = language === "fr";
+  const t = {
+    gettingLocation: isFrench ? "Recuperation de la position..." : "Getting location…",
+    locationDenied: isFrench ? "Permission de localisation refusee." : "Location permission denied.",
+    gpsError: isFrench ? "Impossible de recuperer la position GPS." : "Could not get GPS position.",
+    unknownPosition: isFrench ? "Position inconnue" : "Unknown position",
+    retry: isFrench ? "Reessayer" : "Retry",
+    openMaps: isFrench ? "Ouvrir dans Google Maps" : "Open in Google Maps",
+    currentWeather: isFrench ? "Meteo actuelle" : "Current weather",
+    weatherUnavailable: isFrench
+      ? "Meteo indisponible. Verifiez le backend."
+      : "Weather unavailable. Check the backend.",
+    weatherError: isFrench ? "Erreur meteo" : "Weather error",
+    location: isFrench ? "Position" : "Location",
+    humidity: isFrench ? "humidite" : "humidity",
+    wind: isFrench ? "vent" : "wind",
+    decisionSupport: isFrench
+      ? "Aide a la decision agroclimatique"
+      : "Agro-climate decision support",
+    soilContext: isFrench
+      ? "Le contexte du sol issu de l'analyse photo est envoye a l'IA."
+      : "Soil context from photo analysis is sent to the AI.",
+    generateInsights: isFrench
+      ? "Generer des recommandations agronomiques"
+      : "Generate agronomic insights",
+    insightsUnavailable: isFrench
+      ? "Les recommandations sont temporairement indisponibles."
+      : "Decision support insights are temporarily unavailable.",
+    weatherSummary: isFrench ? "Resume meteo (serveur)" : "Weather summary (server)",
+    advice: isFrench ? "Conseils" : "Advice",
+  };
   const [lat, setLat] = useState<number | null>(null);
   const [lon, setLon] = useState<number | null>(null);
   const [locError, setLocError] = useState<string | null>(null);
@@ -40,7 +72,7 @@ export function MapWeatherScreen({ route }: Props) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setLocError("Location permission denied.");
+        setLocError(t.locationDenied);
         return;
       }
       const pos = await Location.getCurrentPositionAsync({
@@ -49,11 +81,11 @@ export function MapWeatherScreen({ route }: Props) {
       setLat(pos.coords.latitude);
       setLon(pos.coords.longitude);
     } catch {
-      setLocError("Could not get GPS position.");
+      setLocError(t.gpsError);
     } finally {
       setLoadingLoc(false);
     }
-  }, []);
+  }, [t.gpsError, t.locationDenied]);
 
   useEffect(() => {
     loadLocation();
@@ -71,12 +103,12 @@ export function MapWeatherScreen({ route }: Props) {
         throw new Error(
           typeof data.detail === "string"
             ? data.detail
-            : "Weather unavailable. Check the backend."
+            : t.weatherUnavailable
         );
       }
       setWeather(data as WeatherCurrent);
     } catch (e) {
-      setWeatherErr(e instanceof Error ? e.message : "Weather error");
+      setWeatherErr(e instanceof Error ? e.message : t.weatherError);
     } finally {
       setLoadingWeather(false);
     }
@@ -107,7 +139,7 @@ export function MapWeatherScreen({ route }: Props) {
         body: JSON.stringify({
           lat,
           lon,
-          language: "en",
+          language,
           soil_summary: soilSummary ?? null,
         }),
       });
@@ -116,7 +148,7 @@ export function MapWeatherScreen({ route }: Props) {
         throw new Error(
           typeof data.detail === "string"
             ? data.detail
-            : "AI advice is temporarily unavailable."
+            : t.insightsUnavailable
         );
       }
       setInsight(data as FarmingInsight);
@@ -131,7 +163,7 @@ export function MapWeatherScreen({ route }: Props) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1c6b2d" />
-        <Text style={styles.muted}>Getting location…</Text>
+        <Text style={styles.muted}>{t.gettingLocation}</Text>
       </View>
     );
   }
@@ -139,9 +171,9 @@ export function MapWeatherScreen({ route }: Props) {
   if (locError || lat == null || lon == null) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.error}>{locError ?? "Unknown position"}</Text>
+        <Text style={styles.error}>{locError ?? t.unknownPosition}</Text>
         <TouchableOpacity style={styles.btn} onPress={loadLocation}>
-          <Text style={styles.btnText}>Retry</Text>
+          <Text style={styles.btnText}>{t.retry}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -153,7 +185,7 @@ export function MapWeatherScreen({ route }: Props) {
         {lat.toFixed(5)}, {lon.toFixed(5)}
       </Text>
       <TouchableOpacity style={styles.outlineBtn} onPress={openGoogleMaps}>
-        <Text style={styles.outlineBtnText}>Open in Google Maps</Text>
+        <Text style={styles.outlineBtnText}>{t.openMaps}</Text>
       </TouchableOpacity>
 
       <View style={styles.mapWrap}>
@@ -176,7 +208,7 @@ export function MapWeatherScreen({ route }: Props) {
         </Text>
       ) : null}
 
-      <Text style={styles.section}>Current weather</Text>
+      <Text style={styles.section}>{t.currentWeather}</Text>
       {loadingWeather ? (
         <ActivityIndicator color="#1c6b2d" />
       ) : weatherErr ? (
@@ -184,19 +216,19 @@ export function MapWeatherScreen({ route }: Props) {
       ) : weather ? (
         <View style={styles.card}>
           <Text style={styles.line}>
-            {weather.location_name ?? "Location"} — {weather.description}
+            {weather.location_name ?? t.location} — {weather.description}
           </Text>
           <Text style={styles.line}>
-            {weather.temp_c.toFixed(1)} °C · humidity {weather.humidity} % · wind{" "}
+            {weather.temp_c.toFixed(1)} °C · {t.humidity} {weather.humidity} % · {t.wind}{" "}
             {weather.wind_speed_ms.toFixed(1)} m/s
           </Text>
         </View>
       ) : null}
 
-      <Text style={styles.section}>AI advice (weather + location)</Text>
+      <Text style={styles.section}>{t.decisionSupport}</Text>
       {soilSummary ? (
         <Text style={styles.soilHint}>
-          Soil context from photo analysis is sent to the AI.
+          {t.soilContext}
         </Text>
       ) : null}
       <TouchableOpacity
@@ -207,15 +239,15 @@ export function MapWeatherScreen({ route }: Props) {
         {loadingInsight ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.btnText}>Get farming advice</Text>
+          <Text style={styles.btnText}>{t.generateInsights}</Text>
         )}
       </TouchableOpacity>
       {insightErr ? <Text style={styles.error}>{insightErr}</Text> : null}
       {insight ? (
         <View style={styles.card}>
-          <Text style={styles.bold}>Weather summary (server)</Text>
+          <Text style={styles.bold}>{t.weatherSummary}</Text>
           <Text style={styles.body}>{insight.weather_summary}</Text>
-          <Text style={[styles.bold, styles.mt]}>Advice</Text>
+          <Text style={[styles.bold, styles.mt]}>{t.advice}</Text>
           <Text style={styles.body}>{insight.advisory_text}</Text>
         </View>
       ) : null}

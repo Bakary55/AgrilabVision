@@ -14,6 +14,11 @@ if DATABASE_URL.startswith("postgres://"):
     # Render may provide postgres://; SQLAlchemy expects postgresql://
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+if os.getenv("RENDER") and DATABASE_URL.startswith("sqlite"):
+    raise RuntimeError(
+        "DATABASE_URL points to SQLite in Render. Configure a managed Postgres DATABASE_URL."
+    )
+
 # "check_same_thread" is needed only for local SQLite.
 is_sqlite = DATABASE_URL.startswith("sqlite")
 engine = create_engine(

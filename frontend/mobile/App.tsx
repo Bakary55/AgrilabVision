@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { RootStackParamList } from "./src/navigation/types";
+import { AccountScreen } from "./src/screens/AccountScreen";
 import { AnalyzeScreen } from "./src/screens/AnalyzeScreen";
 import { AuthScreen } from "./src/screens/AuthScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
@@ -49,6 +50,11 @@ function RootNavigator() {
             name="Home"
             component={HomeScreen}
             options={{ title: "AgrilabVision" }}
+          />
+          <Stack.Screen
+            name="Account"
+            component={AccountScreen}
+            options={{ title: "My account" }}
           />
           <Stack.Screen
             name="Analyze"

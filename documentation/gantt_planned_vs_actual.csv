@@ -1,0 +1,10 @@
+Task,Mois_prevu,Mois_reel,Notes
+Analyse et SRS / perimetre,Janvier,Janvier,Ajuster selon equipe
+Maquettes et architecture,Février,Février,
+Backend FastAPI et base de donnees,Mars,Avril,exemple retard d un mois
+Auth et API sol,Avril,Avril,
+App mobile Expo,Avril,Mai,exemple decalage
+IA sol Gemini et integrations,Mai,Mai,
+Carte meteo et finitions UI,Mai,Mai,
+Tests deploiement Render documentation,Mai,Mai,
+Presentation et remise finale,Mai,Mai,
